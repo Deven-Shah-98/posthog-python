@@ -8,7 +8,6 @@ tool calls, usage extraction, and edge cases.
 
 import base64
 
-
 from posthog.ai.gemini.gemini_converter import (
     _extract_usage_from_metadata,
     _format_dict_message,

@@ -177,10 +177,7 @@ class TestFormatOpenAIResponse:
         # Remove call_id so getattr falls back
         response = MockObj(output=[func_item])
         result = format_openai_response(response)
-        assert (
-            result[0]["content"][0]["id"] == "fc_1"
-            or result[0]["content"][0]["id"] == "id_fallback"
-        )
+        assert result[0]["content"][0]["id"] == "id_fallback"
 
     def test_multiple_choices(self):
         msg1 = MockObj(role="assistant", content="First", tool_calls=None, audio=None)
