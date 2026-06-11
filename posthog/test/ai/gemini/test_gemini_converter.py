@@ -2,24 +2,35 @@
 
 import base64
 
-from posthog.ai.gemini.gemini_converter import (
-    _extract_usage_from_metadata,
-    _format_dict_message,
-    _format_object_message,
-    _format_parts_as_content_blocks,
-    extract_gemini_content_from_chunk,
-    extract_gemini_embedding_token_count,
-    extract_gemini_stop_reason,
-    extract_gemini_stop_reason_from_chunk,
-    extract_gemini_system_instruction,
-    extract_gemini_tools,
-    extract_gemini_usage_from_chunk,
-    extract_gemini_usage_from_response,
-    extract_gemini_web_search_count,
-    format_gemini_input,
-    format_gemini_input_with_system,
-    format_gemini_response,
-    format_gemini_streaming_output,
+import pytest
+
+try:
+    from posthog.ai.gemini.gemini_converter import (
+        _extract_usage_from_metadata,
+        _format_dict_message,
+        _format_object_message,
+        _format_parts_as_content_blocks,
+        extract_gemini_content_from_chunk,
+        extract_gemini_embedding_token_count,
+        extract_gemini_stop_reason,
+        extract_gemini_stop_reason_from_chunk,
+        extract_gemini_system_instruction,
+        extract_gemini_tools,
+        extract_gemini_usage_from_chunk,
+        extract_gemini_usage_from_response,
+        extract_gemini_web_search_count,
+        format_gemini_input,
+        format_gemini_input_with_system,
+        format_gemini_response,
+        format_gemini_streaming_output,
+    )
+
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not GEMINI_AVAILABLE, reason="Gemini package is not available"
 )
 
 

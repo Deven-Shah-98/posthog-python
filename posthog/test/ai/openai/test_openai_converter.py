@@ -1,19 +1,30 @@
 """Unit tests for posthog.ai.openai.openai_converter."""
 
-from posthog.ai.openai.openai_converter import (
-    accumulate_openai_tool_calls,
-    extract_openai_content_from_chunk,
-    extract_openai_stop_reason,
-    extract_openai_tools,
-    extract_openai_usage_from_chunk,
-    extract_openai_usage_from_response,
-    extract_openai_web_search_count,
-    extract_openai_tool_calls_from_chunk,
-    format_openai_input,
-    format_openai_response,
-    format_openai_streaming_content,
-    format_openai_streaming_input,
-    format_openai_streaming_output,
+import pytest
+
+try:
+    from posthog.ai.openai.openai_converter import (
+        accumulate_openai_tool_calls,
+        extract_openai_content_from_chunk,
+        extract_openai_stop_reason,
+        extract_openai_tools,
+        extract_openai_usage_from_chunk,
+        extract_openai_usage_from_response,
+        extract_openai_web_search_count,
+        extract_openai_tool_calls_from_chunk,
+        format_openai_input,
+        format_openai_response,
+        format_openai_streaming_content,
+        format_openai_streaming_input,
+        format_openai_streaming_output,
+    )
+
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not OPENAI_AVAILABLE, reason="OpenAI package is not available"
 )
 
 

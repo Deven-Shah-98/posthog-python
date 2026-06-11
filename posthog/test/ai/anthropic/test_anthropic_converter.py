@@ -1,20 +1,31 @@
 """Unit tests for posthog.ai.anthropic.anthropic_converter."""
 
-from posthog.ai.anthropic.anthropic_converter import (
-    extract_anthropic_stop_reason,
-    extract_anthropic_tools,
-    extract_anthropic_usage_from_event,
-    extract_anthropic_usage_from_response,
-    extract_anthropic_web_search_count,
-    finalize_anthropic_tool_input,
-    format_anthropic_input,
-    format_anthropic_response,
-    format_anthropic_streaming_content,
-    format_anthropic_streaming_input,
-    format_anthropic_streaming_output_complete,
-    handle_anthropic_content_block_start,
-    handle_anthropic_text_delta,
-    handle_anthropic_tool_delta,
+import pytest
+
+try:
+    from posthog.ai.anthropic.anthropic_converter import (
+        extract_anthropic_stop_reason,
+        extract_anthropic_tools,
+        extract_anthropic_usage_from_event,
+        extract_anthropic_usage_from_response,
+        extract_anthropic_web_search_count,
+        finalize_anthropic_tool_input,
+        format_anthropic_input,
+        format_anthropic_response,
+        format_anthropic_streaming_content,
+        format_anthropic_streaming_input,
+        format_anthropic_streaming_output_complete,
+        handle_anthropic_content_block_start,
+        handle_anthropic_text_delta,
+        handle_anthropic_tool_delta,
+    )
+
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not ANTHROPIC_AVAILABLE, reason="Anthropic package is not available"
 )
 
 
