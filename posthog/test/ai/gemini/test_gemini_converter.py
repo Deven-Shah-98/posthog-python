@@ -2,8 +2,6 @@
 
 import base64
 
-import pytest
-
 from posthog.ai.gemini.gemini_converter import (
     _extract_usage_from_metadata,
     _format_dict_message,
@@ -29,6 +27,7 @@ from posthog.ai.gemini.gemini_converter import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 class _Obj:
     """Simple namespace for mock objects."""
 
@@ -40,6 +39,7 @@ class _Obj:
 # ===========================================================================
 # _format_parts_as_content_blocks
 # ===========================================================================
+
 
 class TestFormatPartsAsContentBlocks:
     def test_dict_text(self):
@@ -99,6 +99,7 @@ class TestFormatPartsAsContentBlocks:
 # _format_dict_message
 # ===========================================================================
 
+
 class TestFormatDictMessage:
     def test_with_parts(self):
         msg = {"role": "user", "parts": [{"text": "Hello"}]}
@@ -142,6 +143,7 @@ class TestFormatDictMessage:
 # ===========================================================================
 # _format_object_message
 # ===========================================================================
+
 
 class TestFormatObjectMessage:
     def test_with_parts(self):
@@ -198,6 +200,7 @@ class TestFormatObjectMessage:
 # ===========================================================================
 # format_gemini_response
 # ===========================================================================
+
 
 class TestFormatGeminiResponse:
     def test_none(self):
@@ -276,6 +279,7 @@ class TestFormatGeminiResponse:
 # extract_gemini_stop_reason
 # ===========================================================================
 
+
 class TestExtractGeminiStopReason:
     def test_enum_stop_reason(self):
         finish = _Obj(name="STOP")
@@ -305,6 +309,7 @@ class TestExtractGeminiStopReason:
 # extract_gemini_system_instruction
 # ===========================================================================
 
+
 class TestExtractGeminiSystemInstruction:
     def test_none_config(self):
         assert extract_gemini_system_instruction(None) is None
@@ -329,6 +334,7 @@ class TestExtractGeminiSystemInstruction:
 # extract_gemini_tools
 # ===========================================================================
 
+
 class TestExtractGeminiTools:
     def test_with_tools(self):
         config = _Obj(tools=["tool1"])
@@ -347,16 +353,24 @@ class TestExtractGeminiTools:
 # format_gemini_input_with_system
 # ===========================================================================
 
+
 class TestFormatGeminiInputWithSystem:
     def test_prepends_system(self):
-        result = format_gemini_input_with_system("Hello", config={"system_instruction": "Sys"})
+        result = format_gemini_input_with_system(
+            "Hello", config={"system_instruction": "Sys"}
+        )
         assert result[0] == {"role": "system", "content": "Sys"}
         assert result[1] == {"role": "user", "content": "Hello"}
 
     def test_no_duplicate_system(self):
         """If messages already have system role, don't add another."""
-        contents = [{"role": "system", "content": "existing"}, {"role": "user", "content": "q"}]
-        result = format_gemini_input_with_system(contents, config={"system_instruction": "new"})
+        contents = [
+            {"role": "system", "content": "existing"},
+            {"role": "user", "content": "q"},
+        ]
+        result = format_gemini_input_with_system(
+            contents, config={"system_instruction": "new"}
+        )
         system_msgs = [m for m in result if m.get("role") == "system"]
         assert len(system_msgs) == 1
 
@@ -368,6 +382,7 @@ class TestFormatGeminiInputWithSystem:
 # ===========================================================================
 # format_gemini_input
 # ===========================================================================
+
 
 class TestFormatGeminiInput:
     def test_string_input(self):
@@ -401,6 +416,7 @@ class TestFormatGeminiInput:
 # ===========================================================================
 # extract_gemini_web_search_count
 # ===========================================================================
+
 
 class TestExtractGeminiWebSearchCount:
     def test_no_candidates(self):
@@ -449,6 +465,7 @@ class TestExtractGeminiWebSearchCount:
 # _extract_usage_from_metadata
 # ===========================================================================
 
+
 class TestExtractUsageFromMetadata:
     def test_basic(self):
         meta = _Obj(prompt_token_count=100, candidates_token_count=50)
@@ -457,22 +474,34 @@ class TestExtractUsageFromMetadata:
         assert result["output_tokens"] == 50
 
     def test_with_cache(self):
-        meta = _Obj(prompt_token_count=100, candidates_token_count=50, cached_content_token_count=20)
+        meta = _Obj(
+            prompt_token_count=100,
+            candidates_token_count=50,
+            cached_content_token_count=20,
+        )
         result = _extract_usage_from_metadata(meta)
         assert result["cache_read_input_tokens"] == 20
 
     def test_with_reasoning(self):
-        meta = _Obj(prompt_token_count=100, candidates_token_count=50, thoughts_token_count=10)
+        meta = _Obj(
+            prompt_token_count=100, candidates_token_count=50, thoughts_token_count=10
+        )
         result = _extract_usage_from_metadata(meta)
         assert result["reasoning_tokens"] == 10
 
     def test_zero_cache_not_included(self):
-        meta = _Obj(prompt_token_count=100, candidates_token_count=50, cached_content_token_count=0)
+        meta = _Obj(
+            prompt_token_count=100,
+            candidates_token_count=50,
+            cached_content_token_count=0,
+        )
         result = _extract_usage_from_metadata(meta)
         assert "cache_read_input_tokens" not in result
 
     def test_zero_reasoning_not_included(self):
-        meta = _Obj(prompt_token_count=100, candidates_token_count=50, thoughts_token_count=0)
+        meta = _Obj(
+            prompt_token_count=100, candidates_token_count=50, thoughts_token_count=0
+        )
         result = _extract_usage_from_metadata(meta)
         assert "reasoning_tokens" not in result
 
@@ -480,6 +509,7 @@ class TestExtractUsageFromMetadata:
 # ===========================================================================
 # extract_gemini_usage_from_response
 # ===========================================================================
+
 
 class TestExtractGeminiUsageFromResponse:
     def test_no_metadata(self):
@@ -513,6 +543,7 @@ class TestExtractGeminiUsageFromResponse:
 # extract_gemini_usage_from_chunk
 # ===========================================================================
 
+
 class TestExtractGeminiUsageFromChunk:
     def test_no_metadata(self):
         chunk = _Obj()
@@ -543,6 +574,7 @@ class TestExtractGeminiUsageFromChunk:
 # ===========================================================================
 # extract_gemini_content_from_chunk
 # ===========================================================================
+
 
 class TestExtractGeminiContentFromChunk:
     def test_text_content(self):
@@ -582,6 +614,7 @@ class TestExtractGeminiContentFromChunk:
 # ===========================================================================
 # format_gemini_streaming_output
 # ===========================================================================
+
 
 class TestFormatGeminiStreamingOutput:
     def test_string(self):
@@ -624,6 +657,7 @@ class TestFormatGeminiStreamingOutput:
 # ===========================================================================
 # extract_gemini_embedding_token_count
 # ===========================================================================
+
 
 class TestExtractGeminiEmbeddingTokenCount:
     def test_no_embeddings(self):
