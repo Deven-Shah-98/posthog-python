@@ -680,8 +680,9 @@ class TestFormatOpenAIStreamingOutput:
 
     def test_responses_empty_list(self):
         result = format_openai_streaming_output([], "responses")
-        # Fallback
+        # Empty list is falsy, so falls through to str([]) fallback
         assert result[0]["role"] == "assistant"
+        assert result[0]["content"] == [{"type": "text", "text": "[]"}]
 
 
 # ---------------------------------------------------------------------------
