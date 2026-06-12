@@ -14,7 +14,6 @@ extract_gemini_embedding_token_count.
 import base64
 from types import SimpleNamespace
 
-import pytest
 
 from posthog.ai.gemini.gemini_converter import (
     _extract_usage_from_metadata,
@@ -45,6 +44,7 @@ def _ns(**kwargs):
 # _format_parts_as_content_blocks
 # ---------------------------------------------------------------------------
 
+
 class TestFormatPartsAsContentBlocks:
     def test_dict_text(self):
         result = _format_parts_as_content_blocks([{"text": "hello"}])
@@ -55,16 +55,16 @@ class TestFormatPartsAsContentBlocks:
         assert result == [{"type": "text", "text": "hello"}]
 
     def test_dict_inline_data_image(self):
-        result = _format_parts_as_content_blocks([
-            {"inline_data": {"mime_type": "image/png", "data": "base64data"}}
-        ])
+        result = _format_parts_as_content_blocks(
+            [{"inline_data": {"mime_type": "image/png", "data": "base64data"}}]
+        )
         assert result[0]["type"] == "image"
         assert result[0]["inline_data"]["mime_type"] == "image/png"
 
     def test_dict_inline_data_document(self):
-        result = _format_parts_as_content_blocks([
-            {"inline_data": {"mime_type": "application/pdf", "data": "base64data"}}
-        ])
+        result = _format_parts_as_content_blocks(
+            [{"inline_data": {"mime_type": "application/pdf", "data": "base64data"}}]
+        )
         assert result[0]["type"] == "document"
 
     def test_object_text(self):
@@ -100,7 +100,11 @@ class TestFormatPartsAsContentBlocks:
         assert _format_parts_as_content_blocks([]) == []
 
     def test_mixed_parts(self):
-        parts = [{"text": "hello"}, "world", {"inline_data": {"mime_type": "image/png", "data": "x"}}]
+        parts = [
+            {"text": "hello"},
+            "world",
+            {"inline_data": {"mime_type": "image/png", "data": "x"}},
+        ]
         result = _format_parts_as_content_blocks(parts)
         assert len(result) == 3
         assert result[0]["type"] == "text"
@@ -111,6 +115,7 @@ class TestFormatPartsAsContentBlocks:
 # ---------------------------------------------------------------------------
 # _format_dict_message
 # ---------------------------------------------------------------------------
+
 
 class TestFormatDictMessage:
     def test_parts_format(self):
@@ -154,6 +159,7 @@ class TestFormatDictMessage:
 # ---------------------------------------------------------------------------
 # _format_object_message
 # ---------------------------------------------------------------------------
+
 
 class TestFormatObjectMessage:
     def test_parts_attr(self):
@@ -202,6 +208,7 @@ class TestFormatObjectMessage:
 # format_gemini_response
 # ---------------------------------------------------------------------------
 
+
 class TestFormatGeminiResponse:
     def test_none_response(self):
         assert format_gemini_response(None) == []
@@ -241,7 +248,9 @@ class TestFormatGeminiResponse:
         resp = _ns(candidates=[candidate])
         result = format_gemini_response(resp)
         assert result[0]["content"][0]["type"] == "audio"
-        assert result[0]["content"][0]["data"] == base64.b64encode(raw_bytes).decode("utf-8")
+        assert result[0]["content"][0]["data"] == base64.b64encode(raw_bytes).decode(
+            "utf-8"
+        )
 
     def test_inline_data_already_base64(self):
         part = _ns(inline_data=_ns(mime_type="audio/wav", data="already_base64"))
@@ -297,6 +306,7 @@ class TestFormatGeminiResponse:
 # extract_gemini_stop_reason
 # ---------------------------------------------------------------------------
 
+
 class TestExtractGeminiStopReason:
     def test_enum_finish_reason(self):
         candidate = _ns(finish_reason=_ns(name="STOP"))
@@ -327,6 +337,7 @@ class TestExtractGeminiStopReasonFromChunk:
 # extract_gemini_system_instruction
 # ---------------------------------------------------------------------------
 
+
 class TestExtractGeminiSystemInstruction:
     def test_none_config(self):
         assert extract_gemini_system_instruction(None) is None
@@ -351,6 +362,7 @@ class TestExtractGeminiSystemInstruction:
 # extract_gemini_tools
 # ---------------------------------------------------------------------------
 
+
 class TestExtractGeminiTools:
     def test_config_with_tools(self):
         config = _ns(tools=[{"name": "search"}])
@@ -368,6 +380,7 @@ class TestExtractGeminiTools:
 # format_gemini_input_with_system
 # ---------------------------------------------------------------------------
 
+
 class TestFormatGeminiInputWithSystem:
     def test_adds_system_from_config(self):
         contents = "Hello"
@@ -378,7 +391,10 @@ class TestFormatGeminiInputWithSystem:
         assert result[1]["role"] == "user"
 
     def test_no_duplicate_system(self):
-        contents = [{"role": "system", "content": "existing"}, {"role": "user", "content": "hi"}]
+        contents = [
+            {"role": "system", "content": "existing"},
+            {"role": "user", "content": "hi"},
+        ]
         config = _ns(system_instruction="Be helpful")
         result = format_gemini_input_with_system(contents, config)
         # System already exists, shouldn't add another
@@ -397,6 +413,7 @@ class TestFormatGeminiInputWithSystem:
 # ---------------------------------------------------------------------------
 # format_gemini_input
 # ---------------------------------------------------------------------------
+
 
 class TestFormatGeminiInput:
     def test_string_input(self):
@@ -432,6 +449,7 @@ class TestFormatGeminiInput:
 # ---------------------------------------------------------------------------
 # extract_gemini_web_search_count
 # ---------------------------------------------------------------------------
+
 
 class TestExtractGeminiWebSearchCount:
     def test_no_candidates(self):
@@ -490,6 +508,7 @@ class TestExtractGeminiWebSearchCount:
 # _extract_usage_from_metadata
 # ---------------------------------------------------------------------------
 
+
 class TestExtractUsageFromMetadata:
     def test_basic(self):
         metadata = _ns(prompt_token_count=100, candidates_token_count=50)
@@ -539,6 +558,7 @@ class TestExtractUsageFromMetadata:
 # extract_gemini_usage_from_response
 # ---------------------------------------------------------------------------
 
+
 class TestExtractGeminiUsageFromResponse:
     def test_no_metadata(self):
         resp = _ns()
@@ -573,6 +593,7 @@ class TestExtractGeminiUsageFromResponse:
 # extract_gemini_usage_from_chunk
 # ---------------------------------------------------------------------------
 
+
 class TestExtractGeminiUsageFromChunk:
     def test_no_metadata(self):
         chunk = _ns()
@@ -597,6 +618,7 @@ class TestExtractGeminiUsageFromChunk:
 # ---------------------------------------------------------------------------
 # extract_gemini_content_from_chunk
 # ---------------------------------------------------------------------------
+
 
 class TestExtractGeminiContentFromChunk:
     def test_text_chunk(self):
@@ -634,6 +656,7 @@ class TestExtractGeminiContentFromChunk:
 # ---------------------------------------------------------------------------
 # format_gemini_streaming_output
 # ---------------------------------------------------------------------------
+
 
 class TestFormatGeminiStreamingOutput:
     def test_string_input(self):
@@ -680,6 +703,7 @@ class TestFormatGeminiStreamingOutput:
 # ---------------------------------------------------------------------------
 # extract_gemini_embedding_token_count
 # ---------------------------------------------------------------------------
+
 
 class TestExtractGeminiEmbeddingTokenCount:
     def test_no_embeddings(self):

@@ -10,9 +10,8 @@ format_openai_streaming_output, format_openai_streaming_input.
 """
 
 from types import SimpleNamespace
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-import pytest
 
 from posthog.ai.openai.openai_converter import (
     accumulate_openai_tool_calls,
@@ -34,6 +33,7 @@ from posthog.ai.openai.openai_converter import (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _ns(**kwargs) -> SimpleNamespace:
     return SimpleNamespace(**kwargs)
@@ -70,6 +70,7 @@ def _make_responses_api_response(output_items=None, usage=None, status="complete
 # ---------------------------------------------------------------------------
 # format_openai_response  -- Chat Completions
 # ---------------------------------------------------------------------------
+
 
 class TestFormatOpenAIResponseChatCompletions:
     def test_none_response(self):
@@ -112,7 +113,11 @@ class TestFormatOpenAIResponseChatCompletions:
 
     def test_audio_output(self):
         audio_model = _ns(id="audio_1", data="base64data", transcript="hello")
-        audio_model.model_dump = lambda: {"id": "audio_1", "data": "base64data", "transcript": "hello"}
+        audio_model.model_dump = lambda: {
+            "id": "audio_1",
+            "data": "base64data",
+            "transcript": "hello",
+        }
         resp = _make_chat_response(content=None)
         resp.choices[0].message.audio = audio_model
         result = format_openai_response(resp)
@@ -144,6 +149,7 @@ class TestFormatOpenAIResponseChatCompletions:
 # format_openai_response  -- Responses API
 # ---------------------------------------------------------------------------
 
+
 class TestFormatOpenAIResponseResponsesAPI:
     def test_output_text(self):
         content_item = _ns(type="output_text", text="world")
@@ -168,7 +174,9 @@ class TestFormatOpenAIResponseResponsesAPI:
         assert result[0]["content"][0]["image"] == "https://img.png"
 
     def test_function_call_output(self):
-        fc = _ns(type="function_call", call_id="fc_1", name="search", arguments='{"q":"x"}')
+        fc = _ns(
+            type="function_call", call_id="fc_1", name="search", arguments='{"q":"x"}'
+        )
         resp = _make_responses_api_response([fc])
         result = format_openai_response(resp)
         assert result[0]["content"][0]["type"] == "function"
@@ -196,6 +204,7 @@ class TestFormatOpenAIResponseResponsesAPI:
 # format_openai_input
 # ---------------------------------------------------------------------------
 
+
 class TestFormatOpenAIInput:
     def test_messages(self):
         msgs = [
@@ -217,7 +226,10 @@ class TestFormatOpenAIInput:
 
     def test_input_data_list_of_dicts(self):
         result = format_openai_input(
-            input_data=[{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}]
+            input_data=[
+                {"role": "user", "content": "q"},
+                {"role": "assistant", "content": "a"},
+            ]
         )
         assert len(result) == 2
         assert result[1]["role"] == "assistant"
@@ -250,9 +262,12 @@ class TestFormatOpenAIInput:
 # extract_openai_tools
 # ---------------------------------------------------------------------------
 
+
 class TestExtractOpenAITools:
     def test_tools_key(self):
-        assert extract_openai_tools({"tools": [{"type": "function"}]}) == [{"type": "function"}]
+        assert extract_openai_tools({"tools": [{"type": "function"}]}) == [
+            {"type": "function"}
+        ]
 
     def test_functions_key(self):
         assert extract_openai_tools({"functions": [{"name": "f"}]}) == [{"name": "f"}]
@@ -268,6 +283,7 @@ class TestExtractOpenAITools:
 # ---------------------------------------------------------------------------
 # format_openai_streaming_content
 # ---------------------------------------------------------------------------
+
 
 class TestFormatOpenAIStreamingContent:
     def test_text_only(self):
@@ -297,6 +313,7 @@ class TestFormatOpenAIStreamingContent:
 # ---------------------------------------------------------------------------
 # extract_openai_web_search_count
 # ---------------------------------------------------------------------------
+
 
 class TestExtractOpenAIWebSearchCount:
     def test_no_indicators(self):
@@ -372,6 +389,7 @@ class TestExtractOpenAIWebSearchCount:
 # extract_openai_stop_reason
 # ---------------------------------------------------------------------------
 
+
 class TestExtractOpenAIStopReason:
     def test_chat_completions(self):
         resp = _make_chat_response(finish_reason="stop")
@@ -388,6 +406,7 @@ class TestExtractOpenAIStopReason:
 # ---------------------------------------------------------------------------
 # extract_openai_usage_from_response
 # ---------------------------------------------------------------------------
+
 
 class TestExtractOpenAIUsageFromResponse:
     def test_no_usage(self):
@@ -442,6 +461,7 @@ class TestExtractOpenAIUsageFromResponse:
 # extract_openai_usage_from_chunk
 # ---------------------------------------------------------------------------
 
+
 class TestExtractOpenAIUsageFromChunk:
     def test_chat_no_usage(self):
         chunk = _ns(choices=[])
@@ -492,6 +512,7 @@ class TestExtractOpenAIUsageFromChunk:
 # extract_openai_content_from_chunk
 # ---------------------------------------------------------------------------
 
+
 class TestExtractOpenAIContentFromChunk:
     def test_chat_delta_content(self):
         delta = _ns(content="hello")
@@ -523,6 +544,7 @@ class TestExtractOpenAIContentFromChunk:
 # ---------------------------------------------------------------------------
 # extract_openai_tool_calls_from_chunk
 # ---------------------------------------------------------------------------
+
 
 class TestExtractOpenAIToolCallsFromChunk:
     def test_with_tool_calls(self):
@@ -558,11 +580,17 @@ class TestExtractOpenAIToolCallsFromChunk:
 # accumulate_openai_tool_calls
 # ---------------------------------------------------------------------------
 
+
 class TestAccumulateOpenAIToolCalls:
     def test_initial_accumulation(self):
         acc: Dict[int, Dict[str, Any]] = {}
         chunk_tcs = [
-            {"index": 0, "id": "tc_1", "type": "function", "function": {"name": "fn", "arguments": '{"a":'}}
+            {
+                "index": 0,
+                "id": "tc_1",
+                "type": "function",
+                "function": {"name": "fn", "arguments": '{"a":'},
+            }
         ]
         accumulate_openai_tool_calls(acc, chunk_tcs)
         assert acc[0]["id"] == "tc_1"
@@ -571,7 +599,11 @@ class TestAccumulateOpenAIToolCalls:
 
     def test_incremental_arguments(self):
         acc: Dict[int, Dict[str, Any]] = {
-            0: {"id": "tc_1", "type": "function", "function": {"name": "fn", "arguments": '{"a":'}}
+            0: {
+                "id": "tc_1",
+                "type": "function",
+                "function": {"name": "fn", "arguments": '{"a":'},
+            }
         }
         chunk_tcs = [{"index": 0, "function": {"arguments": "1}"}}]
         accumulate_openai_tool_calls(acc, chunk_tcs)
@@ -584,10 +616,23 @@ class TestAccumulateOpenAIToolCalls:
 
     def test_multiple_tool_calls(self):
         acc: Dict[int, Dict[str, Any]] = {}
-        accumulate_openai_tool_calls(acc, [
-            {"index": 0, "id": "tc_0", "type": "function", "function": {"name": "f1", "arguments": ""}},
-            {"index": 1, "id": "tc_1", "type": "function", "function": {"name": "f2", "arguments": ""}},
-        ])
+        accumulate_openai_tool_calls(
+            acc,
+            [
+                {
+                    "index": 0,
+                    "id": "tc_0",
+                    "type": "function",
+                    "function": {"name": "f1", "arguments": ""},
+                },
+                {
+                    "index": 1,
+                    "id": "tc_1",
+                    "type": "function",
+                    "function": {"name": "f2", "arguments": ""},
+                },
+            ],
+        )
         assert len(acc) == 2
         assert acc[0]["function"]["name"] == "f1"
         assert acc[1]["function"]["name"] == "f2"
@@ -597,10 +642,13 @@ class TestAccumulateOpenAIToolCalls:
 # format_openai_streaming_output
 # ---------------------------------------------------------------------------
 
+
 class TestFormatOpenAIStreamingOutput:
     def test_chat_text_only(self):
         result = format_openai_streaming_output("hello", "chat")
-        assert result == [{"role": "assistant", "content": [{"type": "text", "text": "hello"}]}]
+        assert result == [
+            {"role": "assistant", "content": [{"type": "text", "text": "hello"}]}
+        ]
 
     def test_chat_with_tool_calls(self):
         tcs = [{"id": "tc_1", "function": {"name": "fn", "arguments": "{}"}}]
@@ -639,6 +687,7 @@ class TestFormatOpenAIStreamingOutput:
 # ---------------------------------------------------------------------------
 # format_openai_streaming_input
 # ---------------------------------------------------------------------------
+
 
 class TestFormatOpenAIStreamingInput:
     def test_basic_call(self):

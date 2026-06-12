@@ -10,10 +10,8 @@ handle_anthropic_tool_delta, finalize_anthropic_tool_input,
 format_anthropic_streaming_input, format_anthropic_streaming_output_complete.
 """
 
-import json
 from types import SimpleNamespace
 
-import pytest
 
 from posthog.ai.anthropic.anthropic_converter import (
     extract_anthropic_stop_reason,
@@ -40,6 +38,7 @@ def _ns(**kwargs):
 # ---------------------------------------------------------------------------
 # format_anthropic_response
 # ---------------------------------------------------------------------------
+
 
 class TestFormatAnthropicResponse:
     def test_none_response(self):
@@ -103,6 +102,7 @@ class TestFormatAnthropicResponse:
 # format_anthropic_input
 # ---------------------------------------------------------------------------
 
+
 class TestFormatAnthropicInput:
     def test_messages_only(self):
         msgs = [{"role": "user", "content": "hi"}]
@@ -138,6 +138,7 @@ class TestFormatAnthropicInput:
 # extract_anthropic_tools
 # ---------------------------------------------------------------------------
 
+
 class TestExtractAnthropicTools:
     def test_has_tools(self):
         assert extract_anthropic_tools({"tools": [{"name": "fn"}]}) == [{"name": "fn"}]
@@ -149,6 +150,7 @@ class TestExtractAnthropicTools:
 # ---------------------------------------------------------------------------
 # format_anthropic_streaming_content
 # ---------------------------------------------------------------------------
+
 
 class TestFormatAnthropicStreamingContent:
     def test_text_block(self):
@@ -192,6 +194,7 @@ class TestFormatAnthropicStreamingContent:
 # extract_anthropic_web_search_count
 # ---------------------------------------------------------------------------
 
+
 class TestExtractAnthropicWebSearchCount:
     def test_no_usage(self):
         resp = _ns(id="msg")
@@ -218,6 +221,7 @@ class TestExtractAnthropicWebSearchCount:
 # extract_anthropic_stop_reason
 # ---------------------------------------------------------------------------
 
+
 class TestExtractAnthropicStopReason:
     def test_has_stop_reason(self):
         resp = _ns(stop_reason="end_turn")
@@ -230,6 +234,7 @@ class TestExtractAnthropicStopReason:
 # ---------------------------------------------------------------------------
 # extract_anthropic_usage_from_response
 # ---------------------------------------------------------------------------
+
 
 class TestExtractAnthropicUsageFromResponse:
     def test_no_usage(self):
@@ -289,6 +294,7 @@ class TestExtractAnthropicUsageFromResponse:
 # extract_anthropic_usage_from_event
 # ---------------------------------------------------------------------------
 
+
 class TestExtractAnthropicUsageFromEvent:
     def test_message_start_event(self):
         msg_usage = _ns(
@@ -339,6 +345,7 @@ class TestExtractAnthropicUsageFromEvent:
 # handle_anthropic_content_block_start
 # ---------------------------------------------------------------------------
 
+
 class TestHandleAnthropicContentBlockStart:
     def test_text_block(self):
         event = _ns(type="content_block_start", content_block=_ns(type="text"))
@@ -387,6 +394,7 @@ class TestHandleAnthropicContentBlockStart:
 # handle_anthropic_text_delta
 # ---------------------------------------------------------------------------
 
+
 class TestHandleAnthropicTextDelta:
     def test_accumulates_text(self):
         current_block = {"type": "text", "text": "hello"}
@@ -428,6 +436,7 @@ class TestHandleAnthropicTextDelta:
 # ---------------------------------------------------------------------------
 # handle_anthropic_tool_delta
 # ---------------------------------------------------------------------------
+
 
 class TestHandleAnthropicToolDelta:
     def test_accumulates_json(self):
@@ -472,9 +481,14 @@ class TestHandleAnthropicToolDelta:
 # finalize_anthropic_tool_input
 # ---------------------------------------------------------------------------
 
+
 class TestFinalizeAnthropicToolInput:
     def test_parses_json(self):
-        block = {"type": "function", "id": "t1", "function": {"name": "fn", "arguments": {}}}
+        block = {
+            "type": "function",
+            "id": "t1",
+            "function": {"name": "fn", "arguments": {}},
+        }
         tool_in_progress = {"block": block, "input_string": '{"city":"NY"}'}
         content_blocks = [block]
         tools_in_progress = {"t1": tool_in_progress}
@@ -484,7 +498,11 @@ class TestFinalizeAnthropicToolInput:
         assert "t1" not in tools_in_progress
 
     def test_invalid_json_keeps_empty(self):
-        block = {"type": "function", "id": "t1", "function": {"name": "fn", "arguments": {}}}
+        block = {
+            "type": "function",
+            "id": "t1",
+            "function": {"name": "fn", "arguments": {}},
+        }
         tool_in_progress = {"block": block, "input_string": "not json"}
         content_blocks = [block]
         tools_in_progress = {"t1": tool_in_progress}
@@ -505,6 +523,7 @@ class TestFinalizeAnthropicToolInput:
 # format_anthropic_streaming_input
 # ---------------------------------------------------------------------------
 
+
 class TestFormatAnthropicStreamingInput:
     def test_basic(self):
         kwargs = {"messages": [{"role": "user", "content": "hi"}], "model": "claude-3"}
@@ -515,6 +534,7 @@ class TestFormatAnthropicStreamingInput:
 # ---------------------------------------------------------------------------
 # format_anthropic_streaming_output_complete
 # ---------------------------------------------------------------------------
+
 
 class TestFormatAnthropicStreamingOutputComplete:
     def test_with_content_blocks(self):
